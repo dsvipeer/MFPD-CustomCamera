@@ -13,9 +13,9 @@
 
 # Features:
 
-> * > ***Easy to Use: Activate the custom camera with a straightforward chat command "/bdy." Toggle it on and off at your convenience to seamlessly switch between standard and bodycam views.***
-> * > ***Smooth Movement: Experience better camera movement with customizable sensitivity settings inside client.lua.***
-> * > ***Better to Drive: The driving experience is enhanced while using the resource.***
+> * > **Easy to Use: Activate the custom camera with a straightforward chat command "/bdy." Toggle it on and off at your convenience to seamlessly switch between standard and bodycam views.***
+> * > **Smooth Movement: Experience better camera movement with customizable sensitivity settings inside client.lua.***
+> * > **Better to Drive: The driving experience is enhanced while using the resource.***
 > * > **How to Use:**
 > * > **Install MFPD-CustomCamera and add to your resources folder:
  add "ensure MFPD-CustomCamera" in your server.cfg.**
