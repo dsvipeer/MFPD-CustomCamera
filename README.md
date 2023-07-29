@@ -1,15 +1,13 @@
 # MFPD-CustomCamera: Bodycam Experience for FiveM
 
-**
+
 
 > With a simple command, you can enable this custom camera perspective, allowing you to have a better immersion while walking, running or driving, whether you're a law enforcement officer, or simply looking to enhance the realism.
 
-**
-**
 
 # **[PREVIEW CUSTOM CAMERA](https://www.youtube.com/watch?v=xkdFJsiZJoU)**
 
-**
+
 
 # Features:
 
