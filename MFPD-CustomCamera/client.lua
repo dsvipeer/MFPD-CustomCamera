@@ -7,7 +7,7 @@
 local chestCam = nil
 local xOffset, yOffset, zOffset = 0.0, 0.0, -0.5 -- Default offsets
 local sensitivityY = 0.1 -- Camera vertical movement sensitivity
-local smoothnessFactor = 1.0 -- Adjust the smoothness factor (0.0 to 1.0)
+local smoothnessFactor = 0.5 -- Adjust the smoothness factor (0.0 to 1.0)
 
 RegisterCommand("bdy", function()
     local playerPed = PlayerPedId()
@@ -25,9 +25,9 @@ function AttachCameraToChest(playerPed)
         chestCam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
     end
 
-    AttachCamToPedBone(chestCam, playerPed, 31086, 0.0, 0.0, 0.0, true)
+    AttachCamToPedBone(chestCam, playerPed, 31086, -0.04, 0.1, 0.0, true)
     SetCamRot(chestCam, -20.0, 0.0, GetEntityHeading(playerPed))
-    SetCamFov(chestCam, 50.0)
+    SetCamFov(chestCam, 60.0)
     RenderScriptCams(true, false, 1, true, true)
     SetCamActive(chestCam, true)
     SetCamAffectsAiming(chestCam, false)
@@ -59,7 +59,7 @@ Citizen.CreateThread(function()
 
             local coords = GetEntityCoords(playerPed)
             local heading = GetEntityHeading(playerPed)
-            local offsetDistance = 0.8 -- Adjust this value to set the distance of the camera from the player's chest 
+            local offsetDistance = 0.8 -- Adjust this value to set the distance of the camera from the player's chest (reduced from 1.0)
             local cameraHeightOffset = -0.1 -- Adjust this value to set the additional height offset for the camera
             local zOffsetModifier = -0.2 -- Adjust this value to set the amount of manual zOffset adjustment (lower value moves the camera down)
 
@@ -76,11 +76,9 @@ Citizen.CreateThread(function()
             zOffset = math.max(-0.6, math.min(0.6, zOffset))
 
            
-            local smoothX = xOffset + (x - xOffset) * smoothnessFactor
-            local smoothY = yOffset + (y - yOffset) * smoothnessFactor
-            local smoothZ = zOffset + (z - zOffset) * smoothnessFactor
-
-            xOffset, yOffset, zOffset = smoothX, smoothY, smoothZ
+            xOffset = Lerp(xOffset, x, smoothnessFactor)
+            yOffset = Lerp(yOffset, y, smoothnessFactor)
+            zOffset = Lerp(zOffset, z, smoothnessFactor)
 
             
             local pitchRadians = GetGameplayCamRelativePitch()
@@ -88,21 +86,21 @@ Citizen.CreateThread(function()
            
             local pitchDegrees = math.deg(pitchRadians)
 
-            
+           
             local pitchOffset = 0.5 
             zOffset = zOffset + pitchOffset * math.cos(pitchRadians)
 
-           
+            
             local isAiming = IsPlayerFreeAiming(PlayerId())
             if isAiming then
                 zOffset = zOffset - 0.3
                 yOffset = yOffset - 0.1
             end
 
-            
+           
             local cameraPos = GetCamCoord(chestCam)
             local leftArmPos = GetWorldPositionOfEntityBone(playerPed, GetPedBoneIndex(playerPed, 28422)) 
-            local rightArmPos = GetWorldPositionOfEntityBone(playerPed, GetPedBoneIndex(playerPed, 60309)) 
+            local rightArmPos = GetWorldPositionOfEntityBone(playerPed, GetPedBoneIndex(playerPed, 60309))
 
             local xOffsetModifier = 0.1
             if IsCameraClipping(playerPed, cameraPos, leftArmPos) then
@@ -116,9 +114,14 @@ Citizen.CreateThread(function()
             local pitchOffsetModifier = pitchOffsetMultiplier * math.sin(pitchRadians)
             zOffset = zOffset + pitchOffsetModifier
 
-            
+           
             SetCamCoord(chestCam, xOffset, yOffset, z + zOffset + zOffsetModifier) 
-            SetCamRot(chestCam, -10.0, 0.0, GetEntityHeading(playerPed)) 
+            SetCamRot(chestCam, -10.0, 0.0, GetEntityHeading(playerPed))
         end
     end
 end)
+
+
+function Lerp(a, b, t)
+    return (1.0 - t) * a + t * b
+end
