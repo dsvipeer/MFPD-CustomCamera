@@ -5,9 +5,8 @@
 --********************************************************************************--
 
 local chestCam = nil
-local xOffset, yOffset, zOffset = 0.0, 0.0, -0.5 -- Default offsets
-local sensitivityY = 0.1 -- Camera vertical movement sensitivity
-local smoothnessFactor = 0.5 -- Adjust the smoothness factor (0.0 to 1.0)
+local sensitivityX = 0.5 -- Camera horizontal movement sensitivity
+local sensitivityY = 0.5 -- Camera vertical movement sensitivity
 
 RegisterCommand("bdy", function()
     local playerPed = PlayerPedId()
@@ -26,7 +25,6 @@ function AttachCameraToChest(playerPed)
     end
 
     AttachCamToPedBone(chestCam, playerPed, 31086, -0.04, 0.1, 0.0, true)
-    SetCamRot(chestCam, -20.0, 0.0, GetEntityHeading(playerPed))
     SetCamFov(chestCam, 60.0)
     RenderScriptCams(true, false, 1, true, true)
     SetCamActive(chestCam, true)
@@ -42,86 +40,22 @@ function DetachCameraFromChest()
     end
 end
 
-
-function IsCameraClipping(playerPed, cameraPos, armPos)
-    local direction = armPos - cameraPos
-    local rayHandle = StartShapeTestRay(cameraPos.x, cameraPos.y, cameraPos.z, armPos.x, armPos.y, armPos.z, 10, playerPed, 0)
-    local _, _, _, _, result = GetShapeTestResult(rayHandle)
-    return result == 1
-end
-
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(0)
 
         if IsCamActive(chestCam) then
+            local mouseX, mouseY = GetDisabledControlNormal(0, 1), GetDisabledControlNormal(0, 2)
+
             local playerPed = PlayerPedId()
-
-            local coords = GetEntityCoords(playerPed)
             local heading = GetEntityHeading(playerPed)
-            local offsetDistance = 0.8 -- Adjust this value to set the distance of the camera from the player's chest (reduced from 1.0)
-            local cameraHeightOffset = -0.1 -- Adjust this value to set the additional height offset for the camera
-            local zOffsetModifier = -0.2 -- Adjust this value to set the amount of manual zOffset adjustment (lower value moves the camera down)
 
-            
-            local x = coords.x - offsetDistance * math.cos(math.rad(heading))
-            local y = coords.y - offsetDistance * math.sin(math.rad(heading))
-            local z = coords.z + cameraHeightOffset
+            local camHeading = heading - mouseX * sensitivityX
+            camHeading = camHeading % 360.0
 
-            
-            local mouseY = GetDisabledControlNormal(0, 2) 
-            zOffset = zOffset + mouseY * sensitivityY
-
-            
-            zOffset = math.max(-0.6, math.min(0.6, zOffset))
-
-           
-            xOffset = Lerp(xOffset, x, smoothnessFactor)
-            yOffset = Lerp(yOffset, y, smoothnessFactor)
-            zOffset = Lerp(zOffset, z, smoothnessFactor)
-
-            
-            local pitchRadians = GetGameplayCamRelativePitch()
-
-           
-            local pitchDegrees = math.deg(pitchRadians)
-
-           
-            local pitchOffset = 0.5 
-            zOffset = zOffset + pitchOffset * math.cos(pitchRadians)
-
-            
-            local isAiming = IsPlayerFreeAiming(PlayerId())
-            if isAiming then
-                zOffset = zOffset - 0.3
-                yOffset = yOffset - 0.1
-            end
-
-           
-            local cameraPos = GetCamCoord(chestCam)
-            local leftArmPos = GetWorldPositionOfEntityBone(playerPed, GetPedBoneIndex(playerPed, 28422)) 
-            local rightArmPos = GetWorldPositionOfEntityBone(playerPed, GetPedBoneIndex(playerPed, 60309))
-
-            local xOffsetModifier = 0.1
-            if IsCameraClipping(playerPed, cameraPos, leftArmPos) then
-                xOffset = xOffset - xOffsetModifier
-            elseif IsCameraClipping(playerPed, cameraPos, rightArmPos) then
-                xOffset = xOffset + xOffsetModifier
-            end
-
-            
-            local pitchOffsetMultiplier = 0.2
-            local pitchOffsetModifier = pitchOffsetMultiplier * math.sin(pitchRadians)
-            zOffset = zOffset + pitchOffsetModifier
-
-           
-            SetCamCoord(chestCam, xOffset, yOffset, z + zOffset + zOffsetModifier) 
-            SetCamRot(chestCam, -10.0, 0.0, GetEntityHeading(playerPed))
+            local camPitch = GetGameplayCamRelativePitch() + mouseY * sensitivityY
+            camPitch = math.max(-80.0, math.min(80.0, camPitch)) 
+            SetCamRot(chestCam, camPitch, 0.0, camHeading)
         end
     end
 end)
-
-
-function Lerp(a, b, t)
-    return (1.0 - t) * a + t * b
-end
